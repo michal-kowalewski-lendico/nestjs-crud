@@ -16,12 +16,12 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  addProduct(
+  async addProduct(
     @Body('title') prodTitle: string,
     @Body('description') prodDesc: string,
     @Body('price') prodPrice: number,
-  ): { id: string } {
-    const result = this.productsService.insertProduct(
+  ): Promise<{ id: string }> {
+    const result = await this.productsService.insertProduct(
       prodTitle,
       prodDesc,
       prodPrice,
@@ -30,8 +30,14 @@ export class ProductsController {
   }
 
   @Get()
-  getAllProducts(): Product[] {
-    return this.productsService.getProducts();
+  async getAllProducts(): Promise<Product[]> {
+    const products = await this.productsService.getProducts();
+    return products.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: p.price,
+    }));
   }
 
   @Get(':id')

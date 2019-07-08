@@ -2,6 +2,9 @@
 /dist
 /node_modules
 
+
+keys.js
+
 # Logs
 logs
 *.log
