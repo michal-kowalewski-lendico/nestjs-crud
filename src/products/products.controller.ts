@@ -30,29 +30,23 @@ export class ProductsController {
   }
 
   @Get()
-  async getAllProducts(): Promise<Product[]> {
-    const products = await this.productsService.getProducts();
-    return products.map(p => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      price: p.price,
-    }));
+  async getAllProducts() {
+    return await this.productsService.getProducts();
   }
 
   @Get(':id')
-  getProduct(@Param('id') prodId: string): Product {
-    return this.productsService.getSingleProduct(prodId);
+  async getProduct(@Param('id') prodId: string) {
+    return await this.productsService.getSingleProduct(prodId);
   }
 
   @Patch(':id')
-  patchProduct(
+  async patchProduct(
     @Param('id') prodId: string,
     @Body('title') prodTitle: string,
     @Body('description') prodDesc: string,
     @Body('price') prodPrice: number,
-  ): Product {
-    return this.productsService.patchProduct(
+  ): Promise<Product> {
+    return await this.productsService.patchProduct(
       prodId,
       prodTitle,
       prodDesc,
@@ -61,7 +55,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  deleteProduct(@Param('id') prodId: string): void {
-    this.productsService.deleteProduct(prodId);
+  async deleteProduct(@Param('id') prodId: string) {
+    await this.productsService.deleteProduct(prodId);
   }
 }

@@ -22,43 +22,61 @@ export class ProductsService {
     return result.id as string;
   }
 
-  async getProducts(): Promise<Product[]> {
+  async getProducts() {
     // to make a copy of an array
     // to make a copy of every object in an array add .map and transform every producy in a copy of itself
     const products = await this.productModel.find().exec();
-    return products as Product[];
+    return products.map(({ id, title, description, price }) => ({
+      id,
+      title,
+      description,
+      price,
+    }));
   }
 
-  getSingleProduct(prodId: string): Product {
-    const product = this.findProduct(prodId)[0];
-    return { ...product };
+  async getSingleProduct(prodId: string) {
+    const product = await this.findProduct(prodId);
+    return {
+      id: product.id,
+      title: product.title,
+      description: product.description,
+      price: product.price,
+    };
   }
 
-  patchProduct(
+  async patchProduct(
     prodId: string,
     prodTitle: string,
     prodDesc: string,
     prodPrice: number,
-  ): Product {
-    const [product, index] = this.findProduct(prodId);
-    const updatedProduct = { ...product };
-    if (prodTitle) updatedProduct.title = prodTitle;
-    if (prodDesc) updatedProduct.description = prodDesc;
-    if (prodPrice) updatedProduct.price = prodPrice;
+  ): Promise<Product> {
+    const product = await this.findProduct(prodId);
 
-    this.products[index] = updatedProduct;
-    return this.products[index];
+    if (prodTitle) product.title = prodTitle;
+    if (prodDesc) product.description = prodDesc;
+    if (prodPrice) product.price = prodPrice;
+
+    return await product.save();
   }
 
-  deleteProduct(prodId: string): void {
-    const [_, index] = this.findProduct(prodId);
-    this.products.splice(index, 1);
+  async deleteProduct(prodId: string) {
+    try {
+      const result = await this.productModel.deleteOne({ _id: prodId }).exec();
+      if (result.n === 0)
+        throw new NotFoundException('Could not find product.');
+    } catch (error) {
+      throw new NotFoundException('Could not find product.');
+    }
   }
 
-  private findProduct(prodId: string): [Product, number] {
-    const productIndex = this.products.findIndex(p => p.id === prodId);
-    const product = this.products[productIndex];
+  private async findProduct(prodId: string): Promise<Product> {
+    let product;
+    try {
+      product = await this.productModel.findById(prodId).exec();
+    } catch (error) {
+      throw new NotFoundException('Could not find product.');
+    }
     if (!product) throw new NotFoundException('Could not find product.');
-    return [product, productIndex];
+    return product;
   }
 }
